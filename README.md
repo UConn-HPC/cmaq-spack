@@ -21,3 +21,5 @@ Then modify `install.sh` as necessary.
 
 If changes to `modulefile.sh` are necessary,
 consider contributing them back to this repository.
+
+Install your module with `./install.sh`
