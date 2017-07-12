@@ -25,7 +25,12 @@ mod=${SRCMOD_PREFIX_MOD:-/apps2/mod/$pn/$v$suffix}
 # Fetch and unpack tarball.
 #
 test ! -e $tarball && wget $url -O $tarball
-test ! -e $tardir && tar -xf $tarball
+if ! [[ -e $tardir ]]; then
+    case ${tarball##*.} in
+	zip) unzip -o $tarball ;;
+	*) tar -xf $tarball ;;
+    esac
+fi
 
 # Build and install
 #
