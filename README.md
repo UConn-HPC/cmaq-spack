@@ -15,7 +15,7 @@ Create a directory structure in the form of:
 
 Clone this git repo to use the "package_version" directory:
 
-	git clone https://github.uconn.edu/srcmod .
+	git clone https://github.uconn.edu/HPC/srcmod .
 
 Then modify `install.sh` as necessary.
 
