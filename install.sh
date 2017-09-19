@@ -15,7 +15,7 @@ deps=(
     # Add runtime module depedencies here, e.g. intelics/2017.1
     # Put compile time dependencies in the build section further below.
 )
-tarball=$(basename ${url})
+tarball=$(basename ${url%/download})
 tardir=$pn-$v
 suffix=				# e.g. ics, pgi, plumed, etc
 suffix=${suffix:+-${suffix}}	# Prepend "-" if suffix is set.
