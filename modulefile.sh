@@ -1,27 +1,57 @@
 #!/bin/bash
+#
+# Function library for environmental modules.
+#
+# USAGE:  source modulefile.sh
+#
+# Released into the Public Domain:
+# https://creativecommons.org/publicdomain/zero/1.0/legalcode
+#
+# General code style:
+# https://github.com/bahamas10/bash-style-guide
+# Comment style only:
+# https://google.github.io/styleguide/shell.xml#Comments
 
-function print_modulefile () {
+
+# Print modulefile for an installed package.
+#
+# Globals:
+#   PREFIX   Array of paths to search for directories.
+#   DEPENDS  Array of module names in name or name/version format.
+#   LINES    (Optional) Array of tcl script extra lines.
+#
+# Arguments:
+#   None
+#
+# Returns:
+#   modulefile string.
+#
+# Example:
+#   PREFIX=( $(find /apps2/ansys/18.1/v181/ -maxdepth 2 -type d -name bin -exec dirname {} \;) )
+#   modulefile > /apps2/mod/ansys/18.1
+modulefile () {
+    local pn v dep prefix line
+
     # Validate first argument prefix directory.
-    local prefix=$1
-    if [[ -z "$prefix" ]]; then
-	echo "Error: Missing \$prefix argument to function ${FUNCNAME[0]}!"
+    if [[ -z "$PREFIX" ]]; then
+	echo >&2 "Error: Missing \$PREFIX global variable for function ${FUNCNAME[0]}!"
 	exit 1
     fi
-    if ! [[ -d "$prefix" ]]; then
-	echo "Error: \$prefix argument must be a root directory of an installed package."
+    if ! [[ -d "$PREFIX" ]]; then
+	echo >&2 "Error: \$PREFIX global variable must be a directory of an installed package."
+	exit 1
     fi
-    # Extract
+    # Extract package name and version from prefix.
     re='/[^/]+/([^/]+)/([^/]+)'
-    if [[ $prefix =~ $re ]]; then
+    if [[ $PREFIX =~ $re ]]; then
 	pn=${BASH_REMATCH[1]}
 	v=${BASH_REMATCH[2]}
     else
-	echo "Internal error: Regex failed"
+	echo >&2 "Internal error: Regex failed"
+	exit 1
     fi
-    # Use dependencies, if provided.
-    shift
-    local deps=($@)
 
+    # Print modulefile contents.
     echo "\
 #%Module1.0
 
@@ -34,39 +64,43 @@ setenv		MOD_VER	$v
 module load pre-module
 
 conflict $pn"
-    for dep in ${deps[*]}; do
+    # Use dependencies, if provided.
+    for dep in ${DEPENDS[*]}; do
 	echo "prereq $dep"
     done
-    echo "
-set		prefix		/apps2/[module-info name]
+    for prefix in ${PREFIX[*]}; do
+	echo "
+set		prefix		$prefix
 "
-    test -d $prefix/bin &&
-	echo "prepend-path	PATH		\$prefix/bin"
-    test -d $prefix/include &&
-	echo "\
+	test -d $prefix/bin &&
+	    echo "prepend-path	PATH		\$prefix/bin"
+	test -d $prefix/include &&
+	    echo "\
 prepend-path	CPATH		\$prefix/include
 prepend-path	INCLUDE		\$prefix/include"
-    test -d $prefix/lib &&
-	echo "\
+	test -d $prefix/lib &&
+	    echo "\
 prepend-path	LIBRARY_PATH	\$prefix/lib
 prepend-path	LD_LIBRARY_PATH	\$prefix/lib"
-    test -d $prefix/lib32 &&
-	echo "\
+	test -d $prefix/lib32 &&
+	    echo "\
 prepend-path	LIBRARY_PATH	\$prefix/lib32
 prepend-path	LD_LIBRARY_PATH	\$prefix/lib32"
-    test -d $prefix/lib64 &&
-	echo "\
+	test -d $prefix/lib64 &&
+	    echo "\
 prepend-path	LIBRARY_PATH	\$prefix/lib64
 prepend-path	LD_LIBRARY_PATH	\$prefix/lib64"
-    test -d $prefix/lib/pkgconfig &&
-	echo "prepend-path	PKG_CONFIG_PATH	\$prefix/lib/pkgconfig"
-    test -d $prefix/share/man &&
-	echo "prepend-path	MANPATH		\$prefix/share/man"
-    test -d $prefix/share/info &&
-	echo "prepend-path	INFOPATH	\$prefix/share/info"
+	test -d $prefix/lib/pkgconfig &&
+	    echo "prepend-path	PKG_CONFIG_PATH	\$prefix/lib/pkgconfig"
+	test -d $PREFIX/share/man &&
+	    echo "prepend-path	MANPATH		\$prefix/share/man"
+	test -d $prefix/share/info &&
+	    echo "prepend-path	INFOPATH	\$prefix/share/info"
+    done
+    for line in ${LINES[*]}; do
+	echo "$line"
+    done
     echo "
 module load post-module
 "
 }
-
-print_modulefile $@
