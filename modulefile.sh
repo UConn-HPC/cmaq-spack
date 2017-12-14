@@ -97,8 +97,8 @@ prepend-path	LD_LIBRARY_PATH	\$prefix/lib64"
 	test -d $prefix/share/info &&
 	    echo "prepend-path	INFOPATH	\$prefix/share/info"
     done
-    for line in ${LINES[*]}; do
-	echo "$line"
+    for ((i = 0; i < ${#LINES[*]}; i++)); do
+	echo "${LINES[$i]}"
     done
     echo "
 module load post-module
