@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-source modulefile.sh
 
 # Ticket FIXME
 
@@ -53,4 +52,4 @@ fi
 
 # Install the modulefile
 mkdir -p $(dirname $mod)
-modulefile > $mod
+modulefile $PREFIX > $mod
