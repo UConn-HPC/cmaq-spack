@@ -52,4 +52,6 @@ fi
 
 # Install the modulefile
 mkdir -p $(dirname $mod)
-modulefile $PREFIX > $mod
+modulefile \
+    $(printf -- "--dep %s " ${DEPENDS[*]}) \
+    $PREFIX > $mod
