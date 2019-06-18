@@ -52,6 +52,8 @@ fi
 
 # Install the modulefile
 mkdir -p $(dirname $mod)
-modulefile \
-    $(printf -- "--dep %s " ${DEPENDS[*]}) \
-    $PREFIX > $mod
+unset deps
+if [[ ${#DEPENDS[*]} -gt 0 ]]; then
+    deps=$(printf -- "--dep %s " ${DEPENDS[*]})
+fi
+modulefile $deps $PREFIX > $mod
