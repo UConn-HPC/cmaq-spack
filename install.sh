@@ -10,6 +10,7 @@ set -e
 #
 PN=$(basename $(dirname $PWD))
 V=$(basename $PWD)
+P=$PN-$V
 url=http://ftpmirror.gnu.org/gsl/${PN}-${V}.tar.gz
 DEPENDS=(
     # Add runtime module depedencies here, e.g. intelics/2017.1
