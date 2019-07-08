@@ -41,6 +41,7 @@ fi
 
     cd $tardir
 
+    module purge
     # Add any build time dependencies here.
     #module load intelics/2017.1
     test ! -z $DEPENDS && module load ${DEPENDS[*]}
