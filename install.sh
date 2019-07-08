@@ -18,6 +18,7 @@ DEPENDS=(
 )
 tarball=$(basename ${url%/download})
 tardir=$PN-$V
+builddir=build-$PN
 suffix=				# e.g. ics, pgi, plumed, etc
 suffix=${suffix:+-${suffix}}	# Prepend "-" if suffix is set.
 PREFIX=${SRCMOD_PREFIX:-/apps2/$PN/$V$suffix}
@@ -40,14 +41,14 @@ fi
 (
     set -e
 
-    cd $tardir
+    cd $builddir
 
     module purge
     # Add any build time dependencies here.
     #module load intelics/2017.1
     test ! -z $DEPENDS && module load ${DEPENDS[*]}
 
-    ./configure --prefix=$PREFIX
+    ../$tardir/configure --prefix=$PREFIX
     make
     make install
 )
