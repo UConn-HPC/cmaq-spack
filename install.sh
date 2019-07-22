@@ -57,7 +57,10 @@ fi
 	    xargs spack compiler find
     fi
 
-    spack install ioapi ^netcdf+parallel-netcdf %$compiler
+    spec="ioapi ^netcdf+parallel-netcdf %$compiler"
+    if ! grep -q installed <<< $(spack find $spec); then
+	spack install $spec
+    fi
 
     cd $tardir
 
