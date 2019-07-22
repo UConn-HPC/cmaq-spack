@@ -122,7 +122,7 @@ fi
 	-e "/setenv NETCDF_INCL_DIR/ s#(.+ NETCDF_INCL_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$netcdf_inc \2#" \
 	-e "/setenv MPI_LIB_DIR/ s#(.+ MPI_LIB_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$mpi_lib \2#" \
 	-e "/setenv mpi_lib/ s#(.+ mpi_lib[ ]+)[[:graph:]]+[ ]+(.*)#\1\"-lmpi\"\2#" \
-	-e "/setenv myLINK_FLAG/ s#(.+ myLINK_FLAG[ ]+)(.*)#\1\"-fopenmp\" \2#" \
+	-e "/setenv myLINK_FLAG/ s#(.+ myLINK_FLAG[ ]+)(.*)#\1\"-fopenmp -Wl,-rpath,$netcdf/lib -Wl,-rpath,$netcdf_fortran/lib\" \2#" \
 	config_cmaq.csh
 
     # Run configure.
