@@ -15,11 +15,6 @@ url=https://github.com/USEPA/$PN/archive/$V.zip
 DEPENDS=(
     # Add runtime module depedencies here, e.g. intelics/2017.1
     # Put compile time dependencies in the build section further below.
-    intelics/2013.1.039-compiler
-    zlib/1.2.8-ics
-    hdf5/1.8.17-ics-impi
-    netcdf/4.3.1-ics-wrf
-    ioapi/3.1
 )
 tarball=$(basename ${url%/download})
 tardir=${PN^^}-$V
@@ -45,49 +40,111 @@ fi
 # function, and 2) preserve local directory in case of error.
 (
     set -e
+    module purge
+
+    # Compile dependencies with spack.
+    if ! [[ -d spack ]]; then
+	git clone https://github.com/spack/spack.git
+    fi
+    source spack/share/spack/setup-env.sh
+    compiler=gcc@9.1.0
+    if ! grep -q $compiler <<< $(spack compiler info $compiler); then
+	spack compiler find	# System compiler
+	spack install $compiler
+	spack find -p $compiler |
+	    tail -1 |
+	    awk '{print $2}' |
+	    xargs spack compiler find
+    fi
+
+    spack install ioapi ^netcdf+parallel-netcdf %$compiler
 
     cd $tardir
 
-    module purge
     # Add any build time dependencies here.
-    #module load intelics/2017.1
-    test ! -z $DEPENDS && module load ${DEPENDS[*]}
+    spack load $compiler
+    spack load mpi
+    module list
 
     # Install into home directory.
+    CMAQ_HOME=$HOME/CMAQ_Project
+    rm -rf $CMAQ_HOME
     sed -i -E \
-	-e "s#(.*set CMAQ_HOME = ).*#\1\$HOME/CMAQ_Project#" \
+	-e "s#(.*set CMAQ_HOME = ).*#\1$CMAQ_HOME#" \
 	bldit_project.csh
 
     ./bldit_project.csh
 
-    cd $HOME/CMAQ_Project/
+    cd $CMAQ_HOME
 
     # Modify paths.
-    ioapi_mod_intel=/apps2/${DEPENDS[4]}/install/Linux2_x86_64ifort
-    ioapi_inc_intel=$ioapi_mod_intel
-    ioapi_lib_intel=$ioapi_mod_intel
-    netcdf_lib_intel=/apps2/${DEPENDS[3]}/lib
-    netcdf_inc_intel=/apps2/${DEPENDS[3]}/include
-    mpi_lib_intel=/apps/${DEPENDS[0]}/lib/intel64
+    ioapi=$(spack location -i ioapi)
+    netcdf=$(spack location -i netcdf)
+    netcdf_fortran=$(spack location -i netcdf-fortran)
+    netcdf_both=$PWD/netcdf_both
+    mpi=$(spack location -i mpi)
+
+    ioapi_mod=$ioapi/lib
+    ioapi_inc=$ioapi/include/fixed132
+    ioapi_lib=$ioapi/lib
+    netcdf_lib=$netcdf_both/lib
+    netcdf_inc=$netcdf_both/include
+    mpi_lib=$mpi
+
+    # CMAQ assumes that netcdf and netcdf-fortran are installed into
+    # the same directory.  Create symlinks to simulate this.
+    rm -rf $netcdf_both
+    mkdir -vp $netcdf_both/{lib,include}
+    # Symlink static libs.
+    for lib in $netcdf/lib/* $netcdf_fortran/lib/*
+    do
+	target=$netcdf_both/lib/$(basename $lib)
+	if ! [[ -L $target ]]
+	then
+	    ln -sv $lib $target
+	fi
+    done
+    for header in $netcdf/include/* $netcdf_fortran/include/*
+    do
+	target=$netcdf_both/include/$(basename $header)
+	if ! [[ -L $target ]]
+	then
+	    ln -sv $header $target
+	fi
+    done
+    tree -F $netcdf_both
 
     sed -i -E \
-	-e "0,/IOAPI_MOD_DIR/ s#(.+ IOAPI_MOD_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$ioapi_mod_intel \2#" \
-	-e "0,/IOAPI_INCL_DIR/ s#(.+ IOAPI_INCL_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$ioapi_inc_intel \2#" \
-	-e "0,/IOAPI_LIB_DIR/ s#(.+ IOAPI_LIB_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$ioapi_lib_intel \2#" \
-	-e "0,/NETCDF_LIB_DIR/ s#(.+ NETCDF_LIB_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$netcdf_lib_intel \2#" \
-	-e "0,/NETCDF_INCL_DIR/ s#(.+ NETCDF_INCL_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$netcdf_inc_intel \2#" \
-	-e "0,/MPI_LIB_DIR/ s#(.+ MPI_LIB_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$mpi_lib_intel \2#" \
+	-e "/setenv IOAPI_MOD_DIR/ s#(.+ IOAPI_MOD_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$ioapi_mod \2#" \
+	-e "/setenv IOAPI_INCL_DIR/ s#(.+ IOAPI_INCL_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$ioapi_inc \2#" \
+	-e "/setenv IOAPI_LIB_DIR/ s#(.+ IOAPI_LIB_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$ioapi_lib \2#" \
+	-e "/setenv NETCDF_LIB_DIR/ s#(.+ NETCDF_LIB_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$netcdf_lib \2#" \
+	-e "/setenv NETCDF_INCL_DIR/ s#(.+ NETCDF_INCL_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$netcdf_inc \2#" \
+	-e "/setenv MPI_LIB_DIR/ s#(.+ MPI_LIB_DIR[ ]+)[[:graph:]]+[ ]+(.*)#\1$mpi_lib \2#" \
+	-e "/setenv mpi_lib/ s#(.+ mpi_lib[ ]+)[[:graph:]]+[ ]+(.*)#\1\"-lmpi\"\2#" \
+	-e "/setenv myLINK_FLAG/ s#(.+ myLINK_FLAG[ ]+)(.*)#\1\"-fopenmp\" \2#" \
 	config_cmaq.csh
 
-    # Create configure script.
-    cat > configure <<EOF
-    #!/bin/bash
-module purge
-module load ${DEPENDS[*]}
-csh -x ./config_cmaq.csh intel
-EOF
-    chmod +x configure
-
     # Run configure.
-    ./configure
+    csh -ex <<EOF
+source ./config_cmaq.csh gcc
+
+cd $CMAQ_HOME/PREP/icon/scripts
+./bldit_icon.csh gcc |& tee build_icon.log
+
+cd $CMAQ_HOME/PREP/bcon/scripts
+./bldit_bcon.csh gcc |& tee build_bcon.log
+
+cd $CMAQ_HOME/CCTM/scripts
+./bldit_cctm.csh gcc |& tee build_cctm.log
+EOF
+
+# cd $CMAQ_HOME/PREP/icon/scripts
+# ./run_icon.csh |& tee run_icon.log
+
+# cd $CMAQ_HOME/PREP/bcon/scripts
+# ./run_bcon.csh |& tee run_bcon.log
+
+# cd $CMAQ_HOME/CCTM/scripts
+# ./run_cctm.csh |& tee cctm.log
 )
