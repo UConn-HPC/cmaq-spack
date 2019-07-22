@@ -44,7 +44,7 @@ fi
 
     # Compile dependencies with spack.
     if ! [[ -d spack ]]; then
-	git clone https://github.com/spack/spack.git
+	git clone https://github.com/UCONN-HPC/spack.git -b ioapi spack
     fi
     source spack/share/spack/setup-env.sh
     compiler=gcc@9.1.0
