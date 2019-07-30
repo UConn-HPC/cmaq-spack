@@ -1,25 +1,39 @@
-# srcmod
+# Compile CMAQ with spack
 
-Simple, lightweight, build automation and
-[environment module](https://en.wikipedia.org/wiki/Environment_Modules_(software)) installer
-intended for installing software in HPC environments.
+CMAQ is a set of Fortran programs from the EPA.
 
-Projects like [spack](/llnl/spack) are fantastic,
-but are overkill for small compilation tasks.
+I added the [I/O API
+package](https://spack.readthedocs.io/en/latest/package_list.html#ioapi)
+to [spack](https://spack.io) to be able to compile the 4 CMAQ models.
 
 # Usage
 
-Create a directory structure in the form of:
+Clone the repo and run the scripts.
 
-    package_name/package_version
+```bash
+git clone https://github.com/UConn-HPC/cmaq-spack.git
+cd cmaq-spack/
+```
 
-Clone this git repo to use the "package_version" directory:
+## BCON, ICON, CCTM
 
-	git clone https://github.uconn.edu/HPC/srcmod .
+Running `install.sh` installs files into the `~/CMAQ_Project/`
+directory recommended by upstream.
 
-Then modify `install.sh` as necessary.
+It creates the programs:
 
-If changes to `modulefile.sh` are necessary,
-consider contributing them back to this repository.
+- `BCON_v52_profile.exe`
+- `ICON_v52_profile.exe`
+- `CCTM_v521.exe`
 
-Install your module with `./install.sh`
+```bash
+bash install.sh
+```
+
+## MCIP
+
+Create the `mcip.exe` program after running `install.sh` above.
+
+```bash
+csh compile-mcip.csh
+```
