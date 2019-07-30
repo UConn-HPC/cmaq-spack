@@ -81,8 +81,8 @@ fi
     cd $CMAQ_HOME
 
     # Modify paths.
-    ioapi=$(spack location -i ioapi)
-    netcdf=$(spack location -i netcdf)
+    ioapi=$(spack location -i ioapi ^netcdf+parallel-netcdf)
+    netcdf=$(spack location -i netcdf+parallel-netcdf)
     netcdf_fortran=$(spack location -i netcdf-fortran)
     netcdf_both=$PWD/netcdf_both
     mpi=$(spack location -i mpi)
