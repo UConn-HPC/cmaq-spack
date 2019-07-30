@@ -1,0 +1,11 @@
+--- mosoutcom_mod.f90.orig	2019-07-25 10:11:40.690499318 -0400
++++ mosoutcom_mod.f90	2019-07-25 10:11:26.996107000 -0400
+@@ -47,7 +47,7 @@
+   ! Header description.
+ 
+   CHARACTER(LEN=16), PARAMETER :: mos3vname ( mos3index ) =     &
+-    (/ 'LUFRAC2',    'MOSCAT',     'LAI_MOS',    'RAI_MOS',     &
++    (/ 'LUFRAC2',    'MOSCAT ',    'LAI_MOS',    'RAI_MOS',     &
+        'RSI_MOS',    'TSK_MOS',    'ZNT_MOS' /)
+ 
+   CHARACTER(LEN=16), PARAMETER :: mos3units ( mos3index ) =     &

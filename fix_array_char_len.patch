@@ -1,0 +1,20 @@
+--- mcoutcom_mod.f90.orig	2019-07-23 15:13:53.475109000 -0400
++++ mcoutcom_mod.f90	2019-07-23 15:14:17.419860967 -0400
+@@ -144,7 +144,7 @@
+        'GSW   ',     'RGRND ',     'RN    ',     'RC    ',      &
+        'CFRAC ',     'CLDT  ',     'CLDB  ',     'WBAR  ',      &
+        'SNOCOV',     'VEG   ',     'LAI   ',     'SEAICE',      &
+-       'SNOWH' /)
++       'SNOWH ' /)
+ 
+ 
+   CHARACTER(LEN=16), PARAMETER :: mc2units ( mc2index ) =       &
+@@ -155,7 +155,7 @@
+        'WATTS/M**2', 'WATTS/M**2', 'CM        ', 'CM        ',  &
+        'FRACTION  ', 'M         ', 'M         ', 'G/M**3    ',  &
+        'DECIMAL   ', 'DECIMAL   ', 'AREA/AREA ', 'FRACTION  ',  &
+-       'M'         /)
++       'M         ' /)
+ 
+ 
+   CHARACTER(LEN=80), PARAMETER :: mc2vdesc ( mc2index ) =       &
